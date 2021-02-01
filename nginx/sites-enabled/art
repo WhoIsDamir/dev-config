@@ -1,0 +1,47 @@
+server {
+
+  listen 80;
+
+  server_name ~^(?:www\.)?(?:(?:admin|auth)\.)?(?<project>[a-z0-9\-\.]+)\.art$;
+
+  root /home/damir/Work/qant/q.projects/$project/public;
+
+  index index.php;
+
+  client_max_body_size 200m;
+
+  location / {
+    rewrite ^ /index.php last;
+  }
+
+  location ~* ^/static-(?<qfront>[a-z0-9\.\-]+)/(?<static>.*)$ {
+    root /home/aibek/work/codeguru/qant/q.framework/frontend/$qfront/public;
+    try_files /$static =404;
+  }
+
+  location ~ /(favicon\.ico)$ {
+    try_files $uri $uri/ =404;
+  }
+
+  location ~* \.(js|ico|gif|jpg|jpeg|png|svg|css|xml|xls|doc|docx|bmp|xlsx|pdf|zip|rar|ttf|otf)$ {
+    try_files $uri $uri/ =404;
+  }
+
+    location ~* [^/]\.php(/|$) {
+        if (!-f $document_root$fastcgi_script_name) {
+            return 404;
+        }
+        fastcgi_split_path_info ^(.+?\.php)(/.*)$;
+        fastcgi_buffer_size 256k;
+        fastcgi_buffers 4 256k;
+        fastcgi_pass unix:/run/php-fpm/php-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_read_timeout 7200;
+        break;
+    }
+
+  location ~ /\.ht {
+    deny all;
+  }
+}
